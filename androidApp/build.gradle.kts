@@ -6,7 +6,13 @@ plugins {
 }
 
 kotlin {
-    androidTarget()
+    androidTarget {
+        compilations.all {
+            kotlinOptions {
+                jvmTarget = "11"
+            }
+        }
+    }
     sourceSets {
         androidMain.dependencies {
             implementation(project(":shared"))

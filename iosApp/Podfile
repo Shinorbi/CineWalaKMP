@@ -3,7 +3,13 @@ source 'https://cdn.cocoapods.org'
 platform :ios, '16.0'
 
 target 'iosApp' do
-  use_frameworks!
+  # Use_frameworks! is kept but we need proper sqlite3 linking
+  # For SQLDelight NativeSqliteDriver on iOS with frameworks
+  config = Pod::Config.instance
+  
+  # Note: SQLDelight with NativeSqliteDriver requires sqlite3 to be linked
+  # The 'use_frameworks!' directive means we need to link system libraries differently
+  
   pod 'shared', :path => '../shared'
 end
 
@@ -11,10 +17,24 @@ post_install do |installer|
   installer.pods_project.targets.each do |target|
     target.build_configurations.each do |config|
       config.build_settings['JAVA_HOME'] = '/opt/homebrew/opt/openjdk@17/libexec/openjdk.jdk/Contents/Home'
-
+      
       # Link against system sqlite3 (required by SQLDelight native driver)
       config.build_settings['OTHER_LDFLAGS'] ||= ['$(inherited)']
       config.build_settings['OTHER_LDFLAGS'] << '-lsqlite3'
+      
+      # For iOS platforms, add required frameworks
+      if config.build_settings['PLATFORM_NAME'] == 'iphoneos' || config.build_settings['PLATFORM_NAME'] == 'iphonesimulator'
+        # SwiftUICore needs special handling - add it as a weak framework or ensure proper client
+        # The error "cannot link directly with 'SwiftUICore'" suggests we need to 
+        # ensure the product being built is an allowed client
+        
+        # Add UIKit and Foundation which are required
+        config.build_settings['OTHER_LDFLAGS'] << '-framework UIKit'
+        config.build_settings['OTHER_LDFLAGS'] << '-framework Foundation'
+      end
+      
+      # Enable bitcode for iOS
+      config.build_settings['BITCODE'] = 'YES'
     end
   end
 end
