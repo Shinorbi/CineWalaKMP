@@ -1,6 +1,8 @@
 # CineWala KMP (iOS)
 
 Kotlin Multiplatform version of CineWala app targeting **iOS** (and Android for testing).
+An App for free streaming.
+
 
 ## Project Structure
 
