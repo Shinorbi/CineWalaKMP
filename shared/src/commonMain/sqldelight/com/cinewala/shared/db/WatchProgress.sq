@@ -1,0 +1,41 @@
+CREATE TABLE watchProgress (
+    content_id INTEGER NOT NULL,
+    content_type TEXT NOT NULL,
+    title TEXT NOT NULL,
+    poster_path TEXT,
+    backdrop_path TEXT,
+    season_number INTEGER,
+    episode_number INTEGER,
+    episode_title TEXT,
+    current_position INTEGER NOT NULL DEFAULT 0,
+    duration INTEGER NOT NULL DEFAULT 0,
+    progress_percent REAL NOT NULL DEFAULT 0.0,
+    last_watched_at INTEGER NOT NULL,
+    PRIMARY KEY (content_id, content_type, season_number, episode_number)
+);
+
+upsertProgress:
+INSERT OR REPLACE INTO watchProgress (
+    content_id, content_type, title, poster_path, backdrop_path,
+    season_number, episode_number, episode_title,
+    current_position, duration, progress_percent, last_watched_at
+) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+
+selectAllRecents:
+SELECT * FROM watchProgress
+ORDER BY last_watched_at DESC;
+
+selectProgress:
+SELECT * FROM watchProgress
+WHERE content_id = ? AND content_type = ? AND season_number IS ? AND episode_number IS ?;
+
+deleteOldEntries:
+DELETE FROM watchProgress
+WHERE last_watched_at < ?;
+
+deleteProgress:
+DELETE FROM watchProgress
+WHERE content_id = ? AND content_type = ? AND season_number IS ? AND episode_number IS ?;
+
+deleteAll:
+DELETE FROM watchProgress;

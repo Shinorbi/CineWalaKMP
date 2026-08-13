@@ -1,0 +1,20 @@
+source 'https://cdn.cocoapods.org'
+
+platform :ios, '16.0'
+
+target 'iosApp' do
+  use_frameworks!
+  pod 'shared', :path => '../shared'
+end
+
+post_install do |installer|
+  installer.pods_project.targets.each do |target|
+    target.build_configurations.each do |config|
+      config.build_settings['JAVA_HOME'] = '/opt/homebrew/opt/openjdk@17/libexec/openjdk.jdk/Contents/Home'
+
+      # Link against system sqlite3 (required by SQLDelight native driver)
+      config.build_settings['OTHER_LDFLAGS'] ||= ['$(inherited)']
+      config.build_settings['OTHER_LDFLAGS'] << '-lsqlite3'
+    end
+  end
+end
