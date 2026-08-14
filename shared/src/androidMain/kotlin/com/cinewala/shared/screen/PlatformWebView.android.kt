@@ -106,6 +106,24 @@ private const val PROGRESS_BRIDGE_JS = """
     })();
 """
 
+/**
+ * JavaScript used to pause any playing media and stop the progress polling
+ * before the WebView is released. This prevents audio/video from continuing
+ * to play in the background after the player screen is closed.
+ */
+private const val STOP_MEDIA_JS = """
+    (function() {
+        try {
+            var video = document.querySelector('video');
+            if (video) {
+                video.pause();
+                video.removeAttribute('src');
+                video.load();
+            }
+        } catch (e) {}
+    })();
+"""
+
 @SuppressLint("SetJavaScriptEnabled")
 @Composable
 actual fun PlatformWebView(
@@ -192,6 +210,15 @@ actual fun PlatformWebView(
             if (webView.url != finalUrl) {
                 webView.loadUrl(finalUrl)
             }
+        },
+        onRelease = { webView ->
+            // Pause any playing media and stop the progress polling before release.
+            webView.evaluateJavascript(STOP_MEDIA_JS, null)
+            webView.stopLoading()
+            // Unload the page to release media/audio resources.
+            webView.loadUrl("about:blank")
+            // Fully destroy the WebView so no background playback continues.
+            webView.destroy()
         }
     )
 }

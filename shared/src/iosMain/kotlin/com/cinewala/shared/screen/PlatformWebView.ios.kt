@@ -106,6 +106,24 @@ private const val PROGRESS_BRIDGE_JS = """
 """
 
 /**
+ * JavaScript used to pause any playing media before the WKWebView is released.
+ * This prevents audio/video from continuing to play in the background after
+ * the player screen is closed.
+ */
+private const val STOP_MEDIA_JS = """
+    (function() {
+        try {
+            var video = document.querySelector('video');
+            if (video) {
+                video.pause();
+                video.removeAttribute('src');
+                video.load();
+            }
+        } catch (e) {}
+    })();
+"""
+
+/**
  * WKScriptMessageHandler that receives progress messages from the injected JS bridge.
  * In Kotlin/Native the message body is an NSDictionary, so we access its values
  * with NSString/NSNumber APIs rather than the Kotlin Map interface.
@@ -199,6 +217,15 @@ actual fun PlatformWebView(
                     webView.loadRequest(NSURLRequest.requestWithURL(nsUrl))
                 }
             }
+        },
+        onRelease = { webView ->
+            // Pause any playing media before releasing the WKWebView.
+            webView.evaluateJavaScript(STOP_MEDIA_JS, completionHandler = null)
+            webView.stopLoading()
+            // Unload the page to release media/audio resources.
+            webView.loadHTMLString("", baseURL = null)
+            // Remove the script message handler to avoid leaks.
+            webView.configuration.userContentController.removeScriptMessageHandlerForName("progressHandler")
         }
     )
 }

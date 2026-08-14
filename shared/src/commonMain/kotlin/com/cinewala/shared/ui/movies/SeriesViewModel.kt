@@ -6,6 +6,7 @@ import com.cinewala.shared.data.model.TvSeries
 import com.cinewala.shared.data.remote.ApiClient
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.IO
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -62,7 +63,7 @@ class SeriesViewModel(
         scope.launch {
             _uiState.value = SeriesUiState.Loading
             try {
-                val response = withContext(Dispatchers.Default) {
+                val response = withContext(Dispatchers.IO) {
                     ApiClient.apiService.getPopularTvSeries(
                         apiKey = ApiClient.API_KEY,
                         page = 1
@@ -94,7 +95,7 @@ class SeriesViewModel(
         scope.launch {
             try {
                 val nextPage = currentPage + 1
-                val response = withContext(Dispatchers.Default) {
+                val response = withContext(Dispatchers.IO) {
                     ApiClient.apiService.getPopularTvSeries(
                         apiKey = ApiClient.API_KEY,
                         page = nextPage
@@ -120,7 +121,7 @@ class SeriesViewModel(
         scope.launch {
             _detailState.value = SeriesDetailState.Loading
             try {
-                val detail = withContext(Dispatchers.Default) {
+                val detail = withContext(Dispatchers.IO) {
                     ApiClient.apiService.getTvSeriesDetail(
                         tvId = tvId,
                         apiKey = ApiClient.API_KEY
@@ -137,7 +138,7 @@ class SeriesViewModel(
         scope.launch {
             _episodesState.value = EpisodesState.Loading
             try {
-                val seasonDetail = withContext(Dispatchers.Default) {
+                val seasonDetail = withContext(Dispatchers.IO) {
                     ApiClient.apiService.getSeasonEpisodes(
                         tvId = tvId,
                         seasonNumber = seasonNumber,

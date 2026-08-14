@@ -103,7 +103,9 @@ fun RecentsScreen(
                         verticalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
                         items(state.recents, key = { item ->
-                            "${item.contentType}_${item.contentId}_${item.seasonNumber}_${item.episodeNumber}"
+                            "${item.contentType}_${item.contentId}"
+//                                    "_${item.seasonNumber}_${item.episodeNumber}" +
+//                                    ""
                         }) { item ->
                             RecentItemCard(
                                 progress = item,

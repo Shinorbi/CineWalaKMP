@@ -8,6 +8,7 @@ import app.cash.sqldelight.coroutines.asFlow
 import app.cash.sqldelight.coroutines.mapToList
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.IO
 import kotlinx.coroutines.withContext
 
 class WatchProgressRepository(
@@ -19,7 +20,7 @@ class WatchProgressRepository(
      * Insert or update a watch progress entry. Also prunes entries older than 30 days.
      */
     suspend fun upsertProgress(progress: WatchProgress) {
-        withContext(Dispatchers.Default) {
+        withContext(Dispatchers.IO) {
             // Normalize null season/episode to 0 so the PRIMARY KEY is consistent
             // for movies (SQLite treats NULL as distinct, which would otherwise
             // allow duplicate rows for the same movie).
@@ -50,7 +51,7 @@ class WatchProgressRepository(
     fun getAllRecents(): Flow<List<WatchProgress>> {
         return queries.selectAllRecents()
             .asFlow()
-            .mapToList(Dispatchers.Default)
+            .mapToList(Dispatchers.IO)
             .map { rows ->
                 rows.map { it.toWatchProgress() }
                     // Deduplicate by content identity, keeping the most recent entry.
@@ -69,7 +70,7 @@ class WatchProgressRepository(
         seasonNumber: Long? = null,
         episodeNumber: Long? = null
     ): WatchProgress? {
-        return withContext(Dispatchers.Default) {
+        return withContext(Dispatchers.IO) {
             queries.selectProgress(
                 content_id = contentId,
                 content_type = contentType,
@@ -88,7 +89,7 @@ class WatchProgressRepository(
         seasonNumber: Long? = null,
         episodeNumber: Long? = null
     ) {
-        withContext(Dispatchers.Default) {
+        withContext(Dispatchers.IO) {
             queries.deleteProgress(
                 content_id = contentId,
                 content_type = contentType,
@@ -102,7 +103,7 @@ class WatchProgressRepository(
      * Delete entries whose last_watched_at is older than the given threshold (epoch millis).
      */
     suspend fun deleteOldEntries(thresholdMillis: Long = currentTimeMillis() - THIRTY_DAYS_MILLIS) {
-        withContext(Dispatchers.Default) {
+        withContext(Dispatchers.IO) {
             queries.deleteOldEntries(thresholdMillis)
         }
     }
@@ -111,7 +112,7 @@ class WatchProgressRepository(
      * Delete all progress entries.
      */
     suspend fun deleteAll() {
-        withContext(Dispatchers.Default) {
+        withContext(Dispatchers.IO) {
             queries.deleteAll()
         }
     }

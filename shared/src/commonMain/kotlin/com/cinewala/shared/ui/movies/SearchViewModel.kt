@@ -5,6 +5,7 @@ import com.cinewala.shared.data.remote.ApiClient
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.IO
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -77,7 +78,7 @@ class SearchViewModel(
         _searchError.value = null
 
         try {
-            val response = withContext(Dispatchers.Default) {
+            val response = withContext(Dispatchers.IO) {
                 ApiClient.apiService.searchMulti(
                     apiKey = ApiClient.API_KEY,
                     query = query,
@@ -114,7 +115,7 @@ class SearchViewModel(
         scope.launch {
             try {
                 val nextPage = currentSearchPage + 1
-                val response = withContext(Dispatchers.Default) {
+                val response = withContext(Dispatchers.IO) {
                     ApiClient.apiService.searchMulti(
                         apiKey = ApiClient.API_KEY,
                         query = currentSearchQuery,
