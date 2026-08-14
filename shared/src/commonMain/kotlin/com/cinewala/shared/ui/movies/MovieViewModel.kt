@@ -4,6 +4,7 @@ import com.cinewala.shared.data.model.Movie
 import com.cinewala.shared.data.remote.ApiClient
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.IO
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -42,7 +43,7 @@ class MovieViewModel(
         scope.launch {
             _uiState.value = MovieUiState.Loading
             try {
-                val response = withContext(Dispatchers.Default) {
+                val response = withContext(Dispatchers.IO) {
                     ApiClient.apiService.getPopularMovies(
                         apiKey = ApiClient.API_KEY,
                         page = 1
@@ -74,7 +75,7 @@ class MovieViewModel(
         scope.launch {
             try {
                 val nextPage = currentPage + 1
-                val response = withContext(Dispatchers.Default) {
+                val response = withContext(Dispatchers.IO) {
                     ApiClient.apiService.getPopularMovies(
                         apiKey = ApiClient.API_KEY,
                         page = nextPage

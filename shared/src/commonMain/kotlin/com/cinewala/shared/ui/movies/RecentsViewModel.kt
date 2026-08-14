@@ -1,5 +1,6 @@
 package com.cinewala.shared.ui.movies
 
+import coil3.util.Logger
 import com.cinewala.shared.data.db.DatabaseProvider
 import com.cinewala.shared.data.db.WatchProgress
 import kotlinx.coroutines.CoroutineScope
@@ -20,6 +21,8 @@ class RecentsViewModel(
     private val _uiState = MutableStateFlow<RecentsUiState>(RecentsUiState.Loading)
     val uiState: StateFlow<RecentsUiState> = _uiState.asStateFlow()
 
+    val recentsResultsId = mutableSetOf<Int>()
+
     init {
         loadRecents()
     }
@@ -28,9 +31,12 @@ class RecentsViewModel(
         scope.launch {
             _uiState.value = RecentsUiState.Loading
             try {
+
                 val repository = DatabaseProvider.getRepository()
                 repository.getAllRecents().collect { recents ->
-                    _uiState.value = RecentsUiState.Success(recents)
+                    _uiState.value = RecentsUiState.Success(
+                        recents.distinctBy { it.contentId to it.contentType }
+                    )
                 }
             } catch (e: Exception) {
                 _uiState.value = RecentsUiState.Error(e.message ?: "Failed to load recents")

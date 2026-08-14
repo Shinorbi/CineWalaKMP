@@ -26,7 +26,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -54,10 +53,6 @@ fun HomeScreen(
 ) {
     val viewModel = rememberHomeViewModel()
     val homeState by viewModel.uiState.collectAsState()
-
-    LaunchedEffect(Unit) {
-        viewModel.loadHomeData()
-    }
 
     when (homeState) {
         is HomeUiState.Loading -> {
@@ -110,7 +105,7 @@ private fun HomeContent(
         }
 
         if (recentSeries.isNotEmpty()) {
-            SectionTitle(title = "Recently Released Series")
+            SectionTitle(title = "Top Rated TV Series")
             HorizontalSeriesList(series = recentSeries, onSeriesClick = onSeriesClick)
         }
 

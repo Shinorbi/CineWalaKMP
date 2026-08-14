@@ -18,6 +18,11 @@ interface TmdbApiService {
         page: Int = 1
     ): TvSeriesResponse
 
+    suspend fun getTopRatedTvSeries(
+        apiKey: String,
+        page: Int = 1
+    ): TvSeriesResponse
+
     suspend fun searchMulti(
         apiKey: String,
         query: String,
@@ -34,4 +39,6 @@ interface TmdbApiService {
         seasonNumber: Int,
         apiKey: String
     ): SeasonDetail
+
+
 }

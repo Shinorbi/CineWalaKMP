@@ -3,6 +3,7 @@ package com.cinewala.shared.data.remote
 import com.cinewala.shared.data.model.MovieResponse
 import com.cinewala.shared.data.model.SeasonDetail
 import com.cinewala.shared.data.model.SearchMultiResponse
+import com.cinewala.shared.data.model.TmdbErrorResponse
 import com.cinewala.shared.data.model.TvSeriesDetail
 import com.cinewala.shared.data.model.TvSeriesResponse
 import io.ktor.client.HttpClient
@@ -13,6 +14,8 @@ import io.ktor.client.plugins.logging.LogLevel
 import io.ktor.client.plugins.logging.Logging
 import io.ktor.client.request.get
 import io.ktor.client.request.parameter
+import io.ktor.client.statement.HttpResponse
+import io.ktor.http.HttpStatusCode
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.serialization.json.Json
 
@@ -52,36 +55,70 @@ class KtorTmdbApiService(
 ) : TmdbApiService {
 
     override suspend fun getPopularMovies(apiKey: String, page: Int): MovieResponse {
-        return client.get("${ApiClient.BASE_URL}movie/popular") {
+        return safeGet("${ApiClient.BASE_URL}movie/popular") {
             parameter("api_key", apiKey)
             parameter("page", page)
-        }.body()
+        }
     }
 
     override suspend fun getPopularTvSeries(apiKey: String, page: Int): TvSeriesResponse {
-        return client.get("${ApiClient.BASE_URL}tv/popular") {
+        return safeGet("${ApiClient.BASE_URL}tv/popular") {
             parameter("api_key", apiKey)
             parameter("page", page)
-        }.body()
+        }
+    }
+
+    override suspend fun getTopRatedTvSeries(apiKey: String, page: Int): TvSeriesResponse {
+        return safeGet("${ApiClient.BASE_URL}tv/top_rated") {
+            parameter("api_key", apiKey)
+            parameter("page", page)
+        }
     }
 
     override suspend fun searchMulti(apiKey: String, query: String, page: Int): SearchMultiResponse {
-        return client.get("${ApiClient.BASE_URL}search/multi") {
+        return safeGet("${ApiClient.BASE_URL}search/multi") {
             parameter("api_key", apiKey)
             parameter("query", query)
             parameter("page", page)
-        }.body()
+        }
     }
 
     override suspend fun getTvSeriesDetail(tvId: Int, apiKey: String): TvSeriesDetail {
-        return client.get("${ApiClient.BASE_URL}tv/$tvId") {
+        return safeGet("${ApiClient.BASE_URL}tv/$tvId") {
             parameter("api_key", apiKey)
-        }.body()
+        }
     }
 
     override suspend fun getSeasonEpisodes(tvId: Int, seasonNumber: Int, apiKey: String): SeasonDetail {
-        return client.get("${ApiClient.BASE_URL}tv/$tvId/season/$seasonNumber") {
+        return safeGet("${ApiClient.BASE_URL}tv/$tvId/season/$seasonNumber") {
             parameter("api_key", apiKey)
-        }.body()
+        }
+    }
+
+    /**
+     * Performs a GET request and throws a descriptive exception if the response
+     * is not successful, instead of letting Ktor attempt to deserialize an
+     * error body into the expected response type (which causes JsonConvertException).
+     */
+    private suspend inline fun <reified T> safeGet(
+        url: String,
+        crossinline block: io.ktor.client.request.HttpRequestBuilder.() -> Unit
+    ): T {
+        val response: HttpResponse = client.get(url) { block() }
+        if (response.status.value !in 200..299) {
+            val errorMessage = try {
+                val error = response.body<TmdbErrorResponse>()
+                error.statusMessage.ifBlank { "HTTP ${response.status.value}" }
+            } catch (e: Exception) {
+                "HTTP ${response.status.value}"
+            }
+            throw ApiException(response.status, errorMessage)
+        }
+        return response.body()
     }
 }
+
+class ApiException(
+    val statusCode: HttpStatusCode,
+    override val message: String
+) : Exception(message)

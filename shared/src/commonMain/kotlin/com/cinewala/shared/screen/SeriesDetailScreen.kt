@@ -86,7 +86,7 @@ fun SeriesDetailScreen(
 
         // Backdrop image
         val backdropUrl = series.backdropPath?.let {
-            ApiClient.IMAGE_BASE_URL.replace("w500", "w780") + it
+            ApiClient.IMAGE_BASE_URL.replace("w100", "w780") + it
         }
         if (backdropUrl != null) {
             AsyncImage(
